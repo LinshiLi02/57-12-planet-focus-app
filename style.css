@@ -255,6 +255,94 @@ button:focus-visible {
   line-height: 1;
 }
 
+.codex {
+  margin-top: 16px;
+}
+
+.codex-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.codex-heading strong {
+  color: var(--ink);
+}
+
+.codex-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.codex-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 6px;
+  background:
+    radial-gradient(circle at 50% 20%, var(--codex-glow), transparent 46px),
+    rgba(255, 255, 255, 0.44);
+  color: inherit;
+  font: inherit;
+  min-height: 0;
+  text-align: center;
+  box-shadow: none;
+}
+
+.codex-card:not(:disabled) {
+  cursor: pointer;
+}
+
+.codex-card:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: rgba(33, 48, 44, 0.2);
+  box-shadow: 0 10px 22px rgba(33, 48, 44, 0.1);
+}
+
+.codex-card:disabled {
+  cursor: default;
+}
+
+.codex-card.locked,
+.codex-card:disabled {
+  filter: grayscale(0.8);
+  opacity: 0.54;
+}
+
+.codex-flower {
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 5px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff36a 0 12%, var(--codex-color) 13% 28%, transparent 29%),
+    conic-gradient(from 18deg, transparent 0 7%, var(--codex-color) 8% 14%, transparent 15% 22%, var(--codex-color) 23% 30%, transparent 31% 39%, var(--codex-color) 40% 48%, transparent 49% 57%, var(--codex-color) 58% 66%, transparent 67% 75%, var(--codex-color) 76% 84%, transparent 85%);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.66);
+}
+
+.codex-card span {
+  display: block;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codex-card small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
 .expanded-view {
   position: fixed;
   inset: 0;
@@ -263,9 +351,10 @@ button:focus-visible {
   place-items: center;
   padding: clamp(18px, 4vw, 44px);
   background:
-    radial-gradient(circle at 16% 16%, rgba(243, 180, 91, 0.22), transparent 24rem),
-    radial-gradient(circle at 84% 26%, rgba(90, 174, 199, 0.2), transparent 26rem),
-    rgba(255, 253, 248, 0.92);
+    radial-gradient(circle at 28% 20%, rgba(255, 177, 168, 0.16), transparent 24rem),
+    radial-gradient(circle at 74% 28%, rgba(122, 168, 255, 0.2), transparent 27rem),
+    radial-gradient(circle at 50% 88%, rgba(174, 210, 142, 0.18), transparent 24rem),
+    #050707;
   backdrop-filter: blur(20px);
 }
 
@@ -288,6 +377,69 @@ button:focus-visible {
   color: var(--ink);
   background: rgba(255, 253, 248, 0.88);
   border: 1px solid rgba(33, 48, 44, 0.12);
+}
+
+.codex-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: clamp(18px, 4vw, 44px);
+  background:
+    radial-gradient(circle at 24% 24%, rgba(255, 177, 168, 0.18), transparent 24rem),
+    radial-gradient(circle at 72% 22%, rgba(122, 168, 255, 0.22), transparent 28rem),
+    #050707;
+}
+
+.codex-preview[hidden] {
+  display: none;
+}
+
+.codex-preview-inner {
+  display: grid;
+  width: min(92vw, 760px);
+  gap: 10px;
+  justify-items: center;
+}
+
+.codex-preview-viewport {
+  width: min(58vmin, 480px);
+  aspect-ratio: 1;
+}
+
+.codex-preview-viewport canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.codex-preview-copy {
+  text-align: center;
+}
+
+.codex-preview-copy span,
+.codex-preview-copy small {
+  display: block;
+  color: rgba(255, 253, 248, 0.68);
+}
+
+.codex-preview-copy strong {
+  display: block;
+  margin: 4px 0;
+  color: #fffdf8;
+  font-size: clamp(2rem, 7vw, 3.8rem);
+  line-height: 1;
+}
+
+.codex-preview-close {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, env(safe-area-inset-left));
+  z-index: 32;
+  color: var(--ink);
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 @media (max-width: 820px) {
@@ -350,5 +502,9 @@ button:focus-visible {
 
   .controls button:nth-child(3) {
     grid-column: 1 / -1;
+  }
+
+  .codex-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

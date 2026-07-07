@@ -53,12 +53,32 @@
           <small>slots</small>
         </div>
       </div>
+
+      <section class="codex" aria-label="Flower codex">
+        <div class="codex-heading">
+          <span>Flower Codex</span>
+          <strong id="codexCount">0 / 5</strong>
+        </div>
+        <div id="flowerCodex" class="codex-grid"></div>
+      </section>
     </section>
   </main>
 
   <section id="planetExpandedView" class="expanded-view" aria-label="Expanded 3D planet view" hidden>
     <button id="backButton" class="back-button" type="button">Back</button>
     <div id="expandedPlanetViewport" class="expanded-planet-viewport"></div>
+  </section>
+
+  <section id="codexPreview" class="codex-preview" aria-label="Expanded flower codex preview" hidden>
+    <button id="codexPreviewClose" class="codex-preview-close" type="button">Back</button>
+    <div class="codex-preview-inner">
+      <div id="codexPreviewViewport" class="codex-preview-viewport"></div>
+      <div class="codex-preview-copy">
+        <span>Unlocked Flower</span>
+        <strong id="codexPreviewName">Moon Jelly</strong>
+        <small id="codexPreviewCount">1 found</small>
+      </div>
+    </div>
   </section>
 
   <script type="importmap">
