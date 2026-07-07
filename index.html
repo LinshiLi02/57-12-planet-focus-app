@@ -15,7 +15,8 @@
       </div>
 
       <div class="planet-wrap">
-        <div id="planet" class="planet" aria-live="polite" aria-label="A weekly planet with flowers for completed focus slots"></div>
+        <div id="planetViewport" class="planet-viewport" aria-live="polite" aria-label="A weekly 3D planet with flowers for completed focus slots"></div>
+        <button id="expandPlanetButton" class="planet-action" type="button" aria-label="Open planet view">View Planet</button>
         <div class="orbit orbit-one"></div>
         <div class="orbit orbit-two"></div>
       </div>
@@ -55,6 +56,19 @@
     </section>
   </main>
 
-  <script src="script.js"></script>
+  <section id="planetExpandedView" class="expanded-view" aria-label="Expanded 3D planet view" hidden>
+    <button id="backButton" class="back-button" type="button">Back</button>
+    <div id="expandedPlanetViewport" class="expanded-planet-viewport"></div>
+  </section>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
