@@ -1,0 +1,26 @@
+# Weekly Focus Planet
+
+A minimal static web app for a 52-minute work timer followed by a 17-minute break timer. One completed work-and-break cycle adds a random flower to the current weekly planet.
+
+## How to Use
+
+1. Open `index.html` in a browser.
+2. Press **Start** to begin a 52-minute work session.
+3. When the work timer ends, the app switches to a 17-minute break.
+4. When the break ends, one flower is added to this week's planet.
+5. Use **Pause** to stop the timer, **Reset** to return to a fresh work session, or **Complete Slot Manually** to add a completed slot right away.
+
+The app stores flowers and slot counts in `localStorage`, so progress stays after refreshing the page. A new planet is used for each week.
+
+## Deploy with GitHub Pages
+
+1. Create a new GitHub repository.
+2. Add `index.html`, `style.css`, `script.js`, and `README.md` to the repository.
+3. Commit and push the files.
+4. In GitHub, open the repository settings.
+5. Go to **Pages**.
+6. Under **Build and deployment**, choose **Deploy from a branch**.
+7. Select the `main` branch and the root folder.
+8. Save. GitHub will publish the app and show the live URL when deployment is ready.
+
+No build step or package installation is required.

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Focus Planet</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="planet-panel" aria-label="Weekly focus planet">
+      <div class="week-label">
+        <span>This week's planet</span>
+        <strong id="weekRange">Loading...</strong>
+      </div>
+
+      <div class="planet-wrap">
+        <div id="planet" class="planet" aria-live="polite" aria-label="A weekly planet with flowers for completed focus slots"></div>
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+      </div>
+    </section>
+
+    <section class="timer-panel" aria-label="Focus timer controls">
+      <div class="mode-row">
+        <span id="phaseBadge" class="phase-badge">Work</span>
+        <span id="statusText" class="status-text">Ready for a 52-minute focus session</span>
+      </div>
+
+      <div class="time-display" id="timeDisplay" aria-live="polite">52:00</div>
+
+      <div class="progress-shell" aria-hidden="true">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <div class="controls" aria-label="Timer actions">
+        <button id="startButton" type="button">Start</button>
+        <button id="pauseButton" type="button">Pause</button>
+        <button id="resetButton" type="button">Reset</button>
+        <button id="manualCompleteButton" type="button" class="wide">Complete Slot Manually</button>
+      </div>
+
+      <div class="stats" aria-label="Completion stats">
+        <div>
+          <span>Today</span>
+          <strong id="todaySlots">0</strong>
+          <small>slots</small>
+        </div>
+        <div>
+          <span>This week</span>
+          <strong id="weekSlots">0</strong>
+          <small>slots</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
