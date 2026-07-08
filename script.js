@@ -160,6 +160,7 @@ function getInitialState() {
     phase: "work",
     remaining: WORK_SECONDS,
     running: false,
+    endsAt: null,
     flowers: [],
     dailySlots: {}
   };
@@ -184,7 +185,8 @@ function loadState() {
       ...fallback,
       ...saved,
       phase,
-      running: false,
+      running: saved.running === true,
+      endsAt: Number.isFinite(saved.endsAt) ? saved.endsAt : null,
       remaining,
       flowers: Array.isArray(saved.flowers) ? saved.flowers.map(normalizeFlower) : [],
       dailySlots: saved.dailySlots && typeof saved.dailySlots === "object" ? saved.dailySlots : {}
@@ -231,7 +233,7 @@ function normalizeFlower(flower) {
 }
 
 function saveState() {
-  localStorage.setItem(getStorageKey(), JSON.stringify({ ...state, running: false }));
+  localStorage.setItem(getStorageKey(), JSON.stringify(state));
 }
 
 function formatTime(seconds) {
@@ -1172,6 +1174,16 @@ function createFlower() {
   };
 }
 
+function setEndsAtFromRemaining() {
+  state.endsAt = Date.now() + state.remaining * 1000;
+}
+
+function addCompletedSlot() {
+  const today = getTodayKey();
+  state.flowers.push(createFlower());
+  state.dailySlots[today] = (state.dailySlots[today] || 0) + 1;
+}
+
 function getAudioContext() {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
@@ -1222,23 +1234,39 @@ function playCompletionChime() {
 }
 
 function completeSlot() {
-  const today = getTodayKey();
-  state.flowers.push(createFlower());
-  state.dailySlots[today] = (state.dailySlots[today] || 0) + 1;
+  addCompletedSlot();
   state.phase = "work";
   state.remaining = WORK_SECONDS;
+  state.endsAt = null;
   state.running = false;
   stopTimer();
   saveState();
   render();
 }
 
-function handlePhaseFinished() {
-  playCompletionChime();
+function handlePhaseFinished({ notify = true, elapsedBeyondEnd = 0 } = {}) {
+  if (notify) {
+    playCompletionChime();
+  }
 
   if (state.phase === "work") {
+    const breakRemaining = BREAK_SECONDS - elapsedBeyondEnd;
+
+    if (breakRemaining <= 0) {
+      addCompletedSlot();
+      state.phase = "work";
+      state.remaining = WORK_SECONDS;
+      state.endsAt = null;
+      state.running = false;
+      stopTimer();
+      saveState();
+      render();
+      return;
+    }
+
     state.phase = "break";
-    state.remaining = BREAK_SECONDS;
+    state.remaining = breakRemaining;
+    setEndsAtFromRemaining();
     saveState();
     render();
     return;
@@ -1247,20 +1275,40 @@ function handlePhaseFinished() {
   completeSlot();
 }
 
+function syncTimerWithClock({ notify = true } = {}) {
+  if (!state.running) {
+    return;
+  }
+
+  if (!Number.isFinite(state.endsAt)) {
+    setEndsAtFromRemaining();
+  }
+
+  const now = Date.now();
+  const remaining = Math.ceil((state.endsAt - now) / 1000);
+
+  if (remaining > 0) {
+    state.remaining = remaining;
+    saveState();
+    render();
+    return;
+  }
+
+  const elapsedBeyondEnd = Math.floor((now - state.endsAt) / 1000);
+  handlePhaseFinished({ notify, elapsedBeyondEnd });
+}
+
 function tick() {
   if (!state.running) {
     return;
   }
 
-  state.remaining -= 1;
+  syncTimerWithClock();
+}
 
-  if (state.remaining <= 0) {
-    handlePhaseFinished();
-    return;
-  }
-
-  saveState();
-  render();
+function startTimerInterval() {
+  window.clearInterval(timerId);
+  timerId = window.setInterval(tick, 1000);
 }
 
 function startTimer() {
@@ -1270,7 +1318,9 @@ function startTimer() {
 
   getAudioContext();
   state.running = true;
-  timerId = window.setInterval(tick, 1000);
+  setEndsAtFromRemaining();
+  startTimerInterval();
+  saveState();
   render();
 }
 
@@ -1281,7 +1331,9 @@ function stopTimer() {
 }
 
 function pauseTimer() {
+  syncTimerWithClock({ notify: false });
   stopTimer();
+  state.endsAt = null;
   saveState();
   render();
 }
@@ -1290,6 +1342,7 @@ function resetTimer() {
   stopTimer();
   state.phase = "work";
   state.remaining = WORK_SECONDS;
+  state.endsAt = null;
   saveState();
   render();
 }
@@ -1322,8 +1375,20 @@ window.addEventListener("keydown", (event) => {
   }
 });
 window.addEventListener("beforeunload", saveState);
+window.addEventListener("pagehide", saveState);
+window.addEventListener("pageshow", () => syncTimerWithClock({ notify: false }));
+window.addEventListener("focus", () => syncTimerWithClock({ notify: false }));
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    syncTimerWithClock({ notify: false });
+  }
+});
 window.addEventListener("resize", resizeCodexPreview);
 codexPreviewClose.addEventListener("click", closeCodexPreview);
 
 createScene();
+syncTimerWithClock({ notify: false });
+if (state.running) {
+  startTimerInterval();
+}
 render();
