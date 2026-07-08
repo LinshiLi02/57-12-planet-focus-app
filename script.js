@@ -160,10 +160,24 @@ function getInitialState() {
     phase: "work",
     remaining: WORK_SECONDS,
     running: false,
-    endsAt: null,
+    startedAt: null,
+    duration: WORK_SECONDS,
+    remainingWhenPaused: WORK_SECONDS,
     flowers: [],
     dailySlots: {}
   };
+}
+
+function getDurationForPhase(phase) {
+  return phase === "break" ? BREAK_SECONDS : WORK_SECONDS;
+}
+
+function clampRemaining(seconds, duration) {
+  if (!Number.isFinite(seconds)) {
+    return duration;
+  }
+
+  return THREE.MathUtils.clamp(Math.ceil(seconds), 0, duration);
 }
 
 function loadState() {
@@ -176,17 +190,33 @@ function loadState() {
     }
 
     const phase = saved.phase === "break" ? "break" : "work";
-    const duration = phase === "work" ? WORK_SECONDS : BREAK_SECONDS;
-    const remaining = Number.isFinite(saved.remaining) && saved.remaining <= duration
-      ? saved.remaining
-      : duration;
+    const duration = Number.isFinite(saved.duration)
+      ? saved.duration
+      : getDurationForPhase(phase);
+    const running = saved.isRunning === true || saved.running === true;
+    const remainingWhenPaused = clampRemaining(
+      Number.isFinite(saved.remainingWhenPaused) ? saved.remainingWhenPaused : saved.remaining,
+      duration
+    );
+    const migratedStartedAt = Number.isFinite(saved.startedAt)
+      ? saved.startedAt
+      : Number.isFinite(saved.endsAt)
+        ? saved.endsAt - duration * 1000
+        : Date.now() - (duration - remainingWhenPaused) * 1000;
+    const startedAt = running ? migratedStartedAt : null;
+    const remaining = running
+      ? clampRemaining(duration - (Date.now() - startedAt) / 1000, duration)
+      : remainingWhenPaused;
 
     const loadedState = {
       ...fallback,
       ...saved,
       phase,
-      running: saved.running === true,
-      endsAt: Number.isFinite(saved.endsAt) ? saved.endsAt : null,
+      running,
+      startedAt,
+      duration,
+      remainingWhenPaused,
+      endsAt: undefined,
       remaining,
       flowers: Array.isArray(saved.flowers) ? saved.flowers.map(normalizeFlower) : [],
       dailySlots: saved.dailySlots && typeof saved.dailySlots === "object" ? saved.dailySlots : {}
@@ -243,7 +273,7 @@ function formatTime(seconds) {
 }
 
 function phaseDuration() {
-  return state.phase === "work" ? WORK_SECONDS : BREAK_SECONDS;
+  return Number.isFinite(state.duration) ? state.duration : getDurationForPhase(state.phase);
 }
 
 function formatDurationLabel(seconds) {
@@ -1174,8 +1204,34 @@ function createFlower() {
   };
 }
 
-function setEndsAtFromRemaining() {
-  state.endsAt = Date.now() + state.remaining * 1000;
+function getCurrentRemaining() {
+  const duration = phaseDuration();
+
+  if (!state.running) {
+    return clampRemaining(state.remainingWhenPaused ?? state.remaining, duration);
+  }
+
+  if (!Number.isFinite(state.startedAt)) {
+    state.startedAt = Date.now() - (duration - state.remaining) * 1000;
+  }
+
+  return Math.ceil(duration - (Date.now() - state.startedAt) / 1000);
+}
+
+function setPausedTimerState(remaining = state.remaining) {
+  state.running = false;
+  state.startedAt = null;
+  state.duration = getDurationForPhase(state.phase);
+  state.remaining = clampRemaining(remaining, state.duration);
+  state.remainingWhenPaused = state.remaining;
+}
+
+function setRunningTimerState(remaining = state.remaining) {
+  state.running = true;
+  state.duration = getDurationForPhase(state.phase);
+  state.remaining = clampRemaining(remaining, state.duration);
+  state.remainingWhenPaused = state.remaining;
+  state.startedAt = Date.now() - (state.duration - state.remaining) * 1000;
 }
 
 function addCompletedSlot() {
@@ -1236,37 +1292,32 @@ function playCompletionChime() {
 function completeSlot() {
   addCompletedSlot();
   state.phase = "work";
-  state.remaining = WORK_SECONDS;
-  state.endsAt = null;
-  state.running = false;
   stopTimer();
+  setPausedTimerState(WORK_SECONDS);
   saveState();
   render();
 }
 
-function handlePhaseFinished({ notify = true, elapsedBeyondEnd = 0 } = {}) {
+function handlePhaseFinished({ notify = true, overflowSeconds = 0 } = {}) {
   if (notify) {
     playCompletionChime();
   }
 
   if (state.phase === "work") {
-    const breakRemaining = BREAK_SECONDS - elapsedBeyondEnd;
+    const breakRemaining = BREAK_SECONDS - overflowSeconds;
 
     if (breakRemaining <= 0) {
       addCompletedSlot();
       state.phase = "work";
-      state.remaining = WORK_SECONDS;
-      state.endsAt = null;
-      state.running = false;
       stopTimer();
+      setPausedTimerState(WORK_SECONDS);
       saveState();
       render();
       return;
     }
 
     state.phase = "break";
-    state.remaining = breakRemaining;
-    setEndsAtFromRemaining();
+    setRunningTimerState(breakRemaining);
     saveState();
     render();
     return;
@@ -1280,22 +1331,17 @@ function syncTimerWithClock({ notify = true } = {}) {
     return;
   }
 
-  if (!Number.isFinite(state.endsAt)) {
-    setEndsAtFromRemaining();
-  }
-
-  const now = Date.now();
-  const remaining = Math.ceil((state.endsAt - now) / 1000);
+  const remaining = getCurrentRemaining();
 
   if (remaining > 0) {
-    state.remaining = remaining;
+    state.remaining = clampRemaining(remaining, phaseDuration());
+    state.remainingWhenPaused = state.remaining;
     saveState();
     render();
     return;
   }
 
-  const elapsedBeyondEnd = Math.floor((now - state.endsAt) / 1000);
-  handlePhaseFinished({ notify, elapsedBeyondEnd });
+  handlePhaseFinished({ notify, overflowSeconds: Math.abs(remaining) });
 }
 
 function tick() {
@@ -1317,8 +1363,7 @@ function startTimer() {
   }
 
   getAudioContext();
-  state.running = true;
-  setEndsAtFromRemaining();
+  setRunningTimerState(state.remainingWhenPaused ?? state.remaining);
   startTimerInterval();
   saveState();
   render();
@@ -1327,13 +1372,20 @@ function startTimer() {
 function stopTimer() {
   window.clearInterval(timerId);
   timerId = null;
-  state.running = false;
 }
 
 function pauseTimer() {
   syncTimerWithClock({ notify: false });
+
+  if (!state.running) {
+    saveState();
+    render();
+    return;
+  }
+
+  const remaining = getCurrentRemaining();
   stopTimer();
-  state.endsAt = null;
+  setPausedTimerState(remaining);
   saveState();
   render();
 }
@@ -1341,8 +1393,7 @@ function pauseTimer() {
 function resetTimer() {
   stopTimer();
   state.phase = "work";
-  state.remaining = WORK_SECONDS;
-  state.endsAt = null;
+  setPausedTimerState(WORK_SECONDS);
   saveState();
   render();
 }
