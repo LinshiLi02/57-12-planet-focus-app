@@ -1278,7 +1278,7 @@ function playCompletionChime() {
     oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(frequency, now + start);
     gain.gain.setValueAtTime(0.0001, now + start);
-    gain.gain.exponentialRampToValueAtTime(0.09, now + start + 0.035);
+    gain.gain.exponentialRampToValueAtTime(0.95, now + start + 0.035);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + start + 0.42);
 
     oscillator.connect(gain);
@@ -1292,8 +1292,8 @@ function playCompletionChime() {
   pad.type = "triangle";
   pad.frequency.setValueAtTime(329.63, now);
   padGain.gain.setValueAtTime(0.0001, now);
-  padGain.gain.exponentialRampToValueAtTime(0.028, now + 0.4);
-  padGain.gain.setValueAtTime(0.028, now + chimeLength - 0.8);
+  padGain.gain.exponentialRampToValueAtTime(0.28, now + 0.4);
+  padGain.gain.setValueAtTime(0.28, now + chimeLength - 0.8);
   padGain.gain.exponentialRampToValueAtTime(0.0001, now + chimeLength);
   pad.connect(padGain);
   padGain.connect(context.destination);
