@@ -1266,27 +1266,39 @@ function playCompletionChime() {
   }
 
   const now = context.currentTime;
-  const notes = [
-    { frequency: 659.25, start: 0, duration: 0.18 },
-    { frequency: 830.61, start: 0.16, duration: 0.22 },
-    { frequency: 987.77, start: 0.36, duration: 0.34 }
-  ];
+  const chimeLength = 10;
+  const pattern = [659.25, 830.61, 987.77, 830.61];
 
-  notes.forEach((note) => {
+  for (let step = 0; step < 20; step += 1) {
+    const start = step * 0.48;
+    const frequency = pattern[step % pattern.length];
     const oscillator = context.createOscillator();
     const gain = context.createGain();
 
     oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(note.frequency, now + note.start);
-    gain.gain.setValueAtTime(0.0001, now + note.start);
-    gain.gain.exponentialRampToValueAtTime(0.11, now + note.start + 0.025);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + note.start + note.duration);
+    oscillator.frequency.setValueAtTime(frequency, now + start);
+    gain.gain.setValueAtTime(0.0001, now + start);
+    gain.gain.exponentialRampToValueAtTime(0.09, now + start + 0.035);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + start + 0.42);
 
     oscillator.connect(gain);
     gain.connect(context.destination);
-    oscillator.start(now + note.start);
-    oscillator.stop(now + note.start + note.duration + 0.04);
-  });
+    oscillator.start(now + start);
+    oscillator.stop(now + start + 0.46);
+  }
+
+  const pad = context.createOscillator();
+  const padGain = context.createGain();
+  pad.type = "triangle";
+  pad.frequency.setValueAtTime(329.63, now);
+  padGain.gain.setValueAtTime(0.0001, now);
+  padGain.gain.exponentialRampToValueAtTime(0.028, now + 0.4);
+  padGain.gain.setValueAtTime(0.028, now + chimeLength - 0.8);
+  padGain.gain.exponentialRampToValueAtTime(0.0001, now + chimeLength);
+  pad.connect(padGain);
+  padGain.connect(context.destination);
+  pad.start(now);
+  pad.stop(now + chimeLength);
 }
 
 function completeSlot() {
