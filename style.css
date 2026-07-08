@@ -6,6 +6,10 @@
   --panel: rgba(255, 255, 255, 0.76);
   --line: rgba(33, 48, 44, 0.12);
   --leaf: #4f8e6a;
+  --leaf-soft: #8fbd88;
+  --leaf-deep: #4f8062;
+  --mint: #dceee5;
+  --cream: #f6e6a7;
   --sky: #b7d9e8;
   --sun: #f3b45b;
   --rose: #df6f76;
@@ -84,6 +88,9 @@ button:focus-visible {
 
 .timer-panel {
   padding: clamp(20px, 5vw, 34px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(244, 251, 246, 0.78)),
+    var(--panel);
 }
 
 .week-label {
@@ -176,12 +183,13 @@ button:focus-visible {
   min-height: 34px;
   border-radius: 999px;
   color: #fffdf8;
-  background: var(--leaf);
+  background: linear-gradient(135deg, var(--leaf-soft), var(--leaf-deep));
   font-weight: 800;
+  box-shadow: 0 8px 18px rgba(79, 128, 98, 0.18);
 }
 
 .phase-badge.break {
-  background: #4f7f9c;
+  background: linear-gradient(135deg, #9fc8d6, #6f9fb0);
 }
 
 .status-text {
@@ -198,20 +206,21 @@ button:focus-visible {
   font-weight: 800;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
+  color: #385d4d;
 }
 
 .progress-shell {
   height: 12px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(33, 48, 44, 0.1);
+  background: rgba(127, 163, 144, 0.2);
 }
 
 .progress-fill {
   height: 100%;
   width: 0%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--leaf), var(--sun), var(--rose));
+  background: linear-gradient(90deg, #7eb58e, #b9d7a8, var(--cream));
   transition: width 250ms linear;
 }
 
@@ -222,10 +231,27 @@ button:focus-visible {
   margin: 24px 0;
 }
 
+.controls button {
+  color: #fafff8;
+  background: linear-gradient(135deg, #6fa17f, #4f8062);
+  box-shadow: 0 12px 24px rgba(79, 128, 98, 0.2);
+}
+
+.controls button:hover {
+  background: linear-gradient(135deg, #78ad88, #5b8d6d);
+  box-shadow: 0 16px 28px rgba(79, 128, 98, 0.24);
+}
+
 .controls .wide {
   grid-column: 1 / -1;
-  color: var(--ink);
-  background: #f3d98a;
+  color: #3f563d;
+  background: linear-gradient(135deg, #f8e9a9, #e9d384);
+  box-shadow: 0 12px 24px rgba(188, 157, 79, 0.18);
+}
+
+.controls .wide:hover {
+  background: linear-gradient(135deg, #fff0b8, #ecd98f);
+  box-shadow: 0 16px 28px rgba(188, 157, 79, 0.22);
 }
 
 .stats {
